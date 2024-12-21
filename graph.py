@@ -1,11 +1,18 @@
 class Graph:
-    def __init__(self):
-        self.nodes: dict = {}
-        self.read_file()
+    def __init__(self, file_name: str = "", sep: str = " "):
+        if file_name != "":
+            self.read_file(file_name, sep)
+        else:
+            self.nodes: dict = {}
 
     # чтение данных из файла
-    def read_file(self, file_name: str = "graph.txt"):
-        pass
+    def read_file(self, file_name: str = "graph.txt", sep: str = " "):
+        self.nodes: dict = {}
+        with open(file_name) as file:
+            for i in file:
+                i = i.split(sep)
+                if len(i) >= 3:
+                    self.add_edge(i[0], i[1], int(i[2]))
 
     @property
     def return_nodes(self):
@@ -22,8 +29,6 @@ class Graph:
         print(f"Удалена нода {name}")
 
     def add_edge(self, node1_name: str, node2_name: str, price: int, pheromones: float = 0.1):
-        if node1_name == node2_name:
-            raise Exception("У двух выбранных нод одинаковое имя")
         if node1_name not in list(self.nodes.keys()):
             self.add_node(node1_name)
         if node2_name not in list(self.nodes.keys()):
