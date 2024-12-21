@@ -5,6 +5,12 @@ class Graph:
         else:
             self.nodes: dict = {}
 
+    def copy(self):
+        graph_copy = Graph()
+        for i in list(self.nodes.keys()):
+            graph_copy.nodes[i] = self.nodes[i].copy()
+        return graph_copy
+
     # чтение данных из файла
     def read_file(self, file_name: str = "graph.txt", sep: str = " "):
         self.nodes: dict = {}
@@ -47,6 +53,12 @@ class Node:
     def __init__(self, name: str):
         self.name = name
         self.neighbours = {}
+
+    def copy(self):
+        node_copy = Node(str(self.name))
+        for i in list(self.neighbours.keys()):
+            node_copy.neighbours[i] = self.neighbours[i].copy()
+        return node_copy
 
     @property
     def neighbour_count(self):
