@@ -1,9 +1,9 @@
 import pygame
 from random import randint
 
-rangeX = 390
+f1 = pygame.font.SysFont('Comic Sans MS', 12)
+rangeX = 370
 rangeY = 400
-
 
 class Graph:
     def __init__(self, file_name: str = "", sep: str = " "):
@@ -93,6 +93,8 @@ class Node:
 
     def draw(self, window, coord: tuple, path: list = [], other_nodes: dict = {}):
         pygame.draw.circle(window, (0, 0, 0), (self.coord[0] + coord[0], self.coord[1] + coord[1]), 5, 1)
+        text = f1.render(self.name, False, (0, 0, 0))
+        window.blit(text, (self.coord[0] + coord[0] - 5, self.coord[1] + coord[1] - 20))
         index = -1 if self.name not in path else path.index(self.name)
         if index >= 0:
             node2 = index + 1 if len(path) > index + 1 else -1
