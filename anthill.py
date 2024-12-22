@@ -1,5 +1,6 @@
 from graph import Graph
 import pygame
+import math
 import random
 
 f1 = pygame.font.SysFont('Comic Sans MS', 24)
@@ -19,8 +20,8 @@ class Anthill:
             quit()
         self.greate_path: list = []
         self.best_length: int = -1
-        self.__best_length_count: int = 0
-        self.ant_count: int = 0
+        self.ant_count: int = 1
+        self.__probabilities = 0
         self.__ants: list = []
 
     def read_conf_file(self):
@@ -34,38 +35,60 @@ class Anthill:
                 self.alpha = float(data[2])
                 self.beta = float(data[3])
                 self.evaluation_rate = float(data[4])
-                self.fix_count = int(data[5])
-                self.max_ant_count = int(data[6])
-                self.__spawn_chance = float(data[7])
-                self.__ants_in_pack = int(data[8])
+                self.__spawn_chance = float(data[5])
+                self.__ants_in_pack = int(data[6])
         except:
             with open("conf.txt", "w") as file:
-                file.write("graph.txt\n \n3.0\n2.0\n0.1\n100\n10000\n1\n10")
+                file.write("graph.txt\n \n3.0\n2.0\n0.1\n1\n10")
             self.read_conf_file()
 
     def __pheramone_recalculation(self, ant_path: list, trail_summ: int):
-        pass
+        summ = 0
+        for i in range(len(ant_path) - 1):
+            node = self.graph.nodes[ant_path[i]]
+            for l in node.return_neighbours:
+                delta = 0
+                if l == ant_path[i + 1]:
+                    delta = 1 / trail_summ
+                node.neighbours[l][1] = (1 - self.evaluation_rate) * node.neighbours[l][1] + delta
+                if l == ant_path[i + 1]:
+                    summ += node.neighbours[l][1]
+        return summ
 
     def step(self):
         while len(self.__ants) != self.__ants_in_pack:
-            self.__ants.append(Ant(self.graph.copy(), self.ant_count + 1, self.alpha, self.beta))
-            self.ant_count += 1
+            self.__ants.append(Ant(self.graph.copy(), self.ant_count, self.alpha, self.beta))
+
+        best_length = -1
+        greate_path = []
+        probabilities = 0
+        steps = 0
         for i in range(len(self.__ants)):
             if self.__ants[i].step():
+                steps += 1
                 if self.__ants[i].end_trail:
-                    self.graph = self.__ants[i].graph
-                    if self.best_length > self.__ants[i].trail_summ or self.best_length == -1:
-                        self.best_length = self.__ants[i].trail_summ
-                        self.greate_path = self.__ants[i].path
-                    elif self.best_length == self.__ants[i].trail_summ:
-                        self.__best_length_count += 1
-                    else:
-                        self.__best_length_count = 0
-                    with open("result.txt", "a") as file:
-                        file.write(
-                            f"{self.ant_count} {self.__ants[i].trail_summ} {self.__ants[i].sum_of_probabilities}\n")
-                    self.ant_count += 1
-                self.__ants[i] = Ant(self.graph.copy(), self.ant_count + 1, self.alpha, self.beta)
+                    if best_length > self.__ants[i].trail_summ or best_length == -1:
+                        best_length = self.__ants[i].trail_summ
+                        greate_path = self.__ants[i].path
+                        probabilities = self.__ants[i].sum_of_probabilities
+
+        if steps == len(self.__ants):
+            if best_length == -1:
+                self.__ants = []
+            else:
+                if self.best_length >= best_length or self.best_length == -1:
+                    self.best_length = best_length
+                    self.greate_path = greate_path
+                    self.__probabilities = probabilities
+                with open("result.txt", "a") as file:
+                    file.write(f"{self.ant_count} {best_length} ")
+                    file.write(f"{self.__pheramone_recalculation(greate_path, best_length)} {probabilities}\n")
+                self.__ants = []
+            self.ant_count += 1
+
+        if probabilities == 1:
+            print(f"\nКратчайший путь это: {' '.join(self.greate_path)}, с длинной {self.best_length}")
+            return True
 
     def draw(self, window):
         self.graph.draw(window, (10, 10), self.greate_path)
@@ -84,7 +107,7 @@ class Anthill:
         window.blit(text, (20, 480))
         text = f1.render(f"Количество муравьев: {self.ant_count}", True, (0, 0, 0))
         window.blit(text, (20, 510))
-        text = f1.render(f"Число фиксация: {self.__best_length_count}", True, (0, 0, 0))
+        text = f1.render(f"Вероятность выбора лучшего пути: {round(self.__probabilities, 5)}", True, (0, 0, 0))
         window.blit(text, (20, 540))
 
 
