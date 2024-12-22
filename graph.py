@@ -1,9 +1,15 @@
+import pygame
+from random import randint
+
+rangeX = 390
+rangeY = 400
+
+
 class Graph:
     def __init__(self, file_name: str = "", sep: str = " "):
+        self.nodes: dict = {}
         if file_name != "":
             self.read_file(file_name, sep)
-        else:
-            self.nodes: dict = {}
 
     def copy(self):
         graph_copy = Graph()
@@ -25,7 +31,7 @@ class Graph:
         return list(self.nodes.values())
 
     def add_node(self, name: str):
-        self.nodes[name] = Node(name)
+        self.nodes[name] = Node(name, (randint(0, rangeX), randint(0, rangeY)))
         print(f"Добавлена нода {name}")
 
     def remove_node(self, name: str):
@@ -48,14 +54,22 @@ class Graph:
         self.nodes[node1_name].remove_neighbour(node2_name)
         print(f"Удалена связь между нодами {node1_name} и {node2_name}")
 
+    def draw_lines(self, window, coord: tuple, line: list):
+        for i in self.nodes.values():
+            i.draw(window, coord, line, self.nodes)
+
+    def draw(self, window, coord, path: list = []):
+        self.draw_lines(window, coord, path)
+
 
 class Node:
-    def __init__(self, name: str):
+    def __init__(self, name: str, coord: tuple):
         self.name = name
         self.neighbours = {}
+        self.coord = coord
 
     def copy(self):
-        node_copy = Node(str(self.name))
+        node_copy = Node(str(self.name), self.coord)
         for i in list(self.neighbours.keys()):
             node_copy.neighbours[i] = self.neighbours[i].copy()
         return node_copy
@@ -76,3 +90,12 @@ class Node:
 
     def remove_neighbour(self, name: str):
         self.neighbours.pop(name)
+
+    def draw(self, window, coord: tuple, path: list = [], other_nodes: dict = {}):
+        pygame.draw.circle(window, (0, 0, 0), (self.coord[0] + coord[0], self.coord[1] + coord[1]), 5, 1)
+        index = -1 if self.name not in path else path.index(self.name)
+        if index >= 0:
+            node2 = index + 1 if len(path) > index + 1 else -1
+            node2 = other_nodes[path[node2]]
+            pygame.draw.line(window, (0, 0, 0), (self.coord[0] + coord[0], self.coord[1] + coord[1]),
+                             (node2.coord[0] + coord[0], node2.coord[1] + coord[1]))
