@@ -23,6 +23,7 @@ class Anthill:
         self.ant_count: int = 1
         self.__probabilities = 0
         self.__ants: list = []
+        self.__alpha_ant_count = 0
 
     def read_conf_file(self):
         try:
@@ -35,7 +36,7 @@ class Anthill:
                 self.alpha = float(data[2])
                 self.beta = float(data[3])
                 self.evaluation_rate = float(data[4])
-                self.__spawn_chance = float(data[5])
+                self.__spawn_chance = int(data[5])
                 self.__ants_in_pack = int(data[6])
         except:
             with open("conf.txt", "w") as file:
@@ -57,7 +58,7 @@ class Anthill:
 
     def step(self):
         while len(self.__ants) != self.__ants_in_pack:
-            self.__ants.append(Ant(self.graph.copy(), self.ant_count, self.alpha, self.beta))
+            self.__ants.append(Ant(self.graph.copy(), self.ant_count, self.alpha, self.beta, self.__spawn_chance))
 
         best_length = -1
         greate_path = []
@@ -66,6 +67,8 @@ class Anthill:
         for i in range(len(self.__ants)):
             if self.__ants[i].step():
                 steps += 1
+                if self.__ants[i].alpha_mode:
+                    self.__alpha_ant_count += 1
                 if self.__ants[i].end_trail:
                     if best_length > self.__ants[i].trail_summ or best_length == -1:
                         best_length = self.__ants[i].trail_summ
@@ -88,6 +91,7 @@ class Anthill:
 
         if probabilities == 1:
             print(f"\nКратчайший путь это: {' '.join(self.greate_path)}, с длинной {self.best_length}")
+            print(f"За время работы появилось {self.__alpha_ant_count} муравьев альфа")
             return True
 
     def draw(self, window):
@@ -112,7 +116,7 @@ class Anthill:
 
 
 class Ant:
-    def __init__(self, graph: Graph, name: int, alpha: float, beta: float):
+    def __init__(self, graph: Graph, name: int, alpha: float, beta: float, alfa_spawn_chance: int = 0):
         self.name: str = str(name)
         self.graph: Graph = graph
         self.path: list = []
@@ -120,7 +124,8 @@ class Ant:
         self.end_trail: bool = False
         self.impasse: bool = False
         self.sum_of_probabilities: float = 1.
-        self.__alpha = alpha
+        self.alpha_mode = random.randint(0, 100) > 100 - alfa_spawn_chance
+        self.__alpha = alpha if not self.alpha_mode else 0
         self.__beta = beta
 
     @property
@@ -168,5 +173,3 @@ class Ant:
 
     def draw(self, window, coord: tuple):
         self.graph.draw(window, coord, self.path)
-        text = f1.render(self.name, False, (255, 100, 100))
-        window.blit(text, coord)
