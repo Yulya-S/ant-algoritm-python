@@ -26,6 +26,20 @@ class Graph:
                 if len(i) >= 3:
                     self.add_edge(i[0], i[1], int(i[2]))
 
+    def ORE(self):
+        for i in self.nodes.values():
+            neighbours = i.return_neighbours
+            other_nodes = list(self.nodes.keys())
+            other_nodes.remove(i.name)
+            for l in neighbours:
+                if l in other_nodes:
+                    other_nodes.remove(l)
+            for l in other_nodes:
+                if self.nodes[l].neighbour_count + len(neighbours) >= len(self.nodes.keys()):
+                    return True
+        return False
+
+
     @property
     def return_nodes(self):
         return list(self.nodes.values())

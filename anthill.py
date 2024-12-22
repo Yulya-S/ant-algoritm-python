@@ -10,6 +10,8 @@ class Anthill:
     def __recreate(self):
         self.read_conf_file()
         self.graph: Graph = Graph(self.__file_name)
+        if not self.graph.ORE():
+            quit()
         self.graph2: Graph = self.graph.copy()
         self.greate_path: list = []
         self.best_length: int = -1
