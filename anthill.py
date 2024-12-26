@@ -1,6 +1,5 @@
-from graph import Graph
+from build_hamilton_graf import *
 import pygame
-import math
 import random
 
 f1 = pygame.font.SysFont('Comic Sans MS', 24)
@@ -17,7 +16,16 @@ class Anthill:
         self.graph: Graph = Graph(self.__file_name, self.__sep)
         if not self.graph.ORE():
             print("В выбранном графе отсутствует Гамильтонов цикл")
-            quit()
+            if self.__complete_graph:
+                print("Начинаем достраивать граф до Гамильтонова!")
+                if len(self.graph.nodes.keys()) > 300:
+                    bilder = Hamilton_bilder_big_graf(self.graph)
+                else:
+                    bilder = Hamilton_bilder_small_graf(self.graph)
+                bilder.process()
+                self.graph = bilder.build().copy()
+            else:
+                quit()
         self.greate_path: list = []
         self.best_length: int = -1
         self.ant_count: int = 1
@@ -38,9 +46,10 @@ class Anthill:
                 self.evaluation_rate = float(data[4])
                 self.__spawn_chance = int(data[5])
                 self.__ants_in_pack = int(data[6])
+                self.__complete_graph = bool(int(data[7]))
         except:
             with open("conf.txt", "w") as file:
-                file.write("graph.txt\n \n3.0\n2.0\n0.1\n1\n10")
+                file.write("graph.txt\n \n3.0\n2.0\n0.1\n1\n10\n1")
             self.read_conf_file()
 
     def __pheramone_recalculation(self, ant_path: list, trail_summ: int):

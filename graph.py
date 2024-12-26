@@ -1,5 +1,5 @@
+import random
 import pygame
-from random import randint
 
 f1 = pygame.font.SysFont('Comic Sans MS', 12)
 rangeX = 370
@@ -8,6 +8,7 @@ rangeY = 400
 class Graph:
     def __init__(self, file_name: str = "", sep: str = " "):
         self.nodes: dict = {}
+        self.__count_add_edges = 0
         if file_name != "":
             self.read_file(file_name, sep)
 
@@ -22,9 +23,17 @@ class Graph:
         self.nodes: dict = {}
         with open(file_name) as file:
             for i in file:
+                i = i.replace("\t", " ")
                 i = i.split(sep)
                 if len(i) >= 3:
                     self.add_edge(i[0], i[1], int(i[2]))
+
+    def write_graf(self, file_name: str = "hamilton_graf.txt"):
+        with open(file_name, "w") as f:
+            for i in self.return_nodes:
+                for l in i.return_neighbours:
+                    f.write(f"{i.name} {l} {i.neighbours[l][0]}\n")
+        print(f"Граф сохранен в файл: '{file_name}'")
 
     def ORE(self):
         for i in self.nodes.values():
@@ -35,17 +44,18 @@ class Graph:
                 if l in other_nodes:
                     other_nodes.remove(l)
             for l in other_nodes:
+                if i.name in list(self.nodes[l].neighbours.keys()):
+                    continue
                 if self.nodes[l].neighbour_count + len(neighbours) >= len(self.nodes.keys()):
                     return True
         return False
-
 
     @property
     def return_nodes(self):
         return list(self.nodes.values())
 
     def add_node(self, name: str):
-        self.nodes[name] = Node(name, (randint(0, rangeX), randint(0, rangeY)))
+        self.nodes[name] = Node(name, (random.randint(0, rangeX), random.randint(0, rangeY)))
         print(f"Добавлена нода {name}")
 
     def remove_node(self, name: str):
